@@ -21,6 +21,7 @@ class AppModular extends Module {
           child: (context, args) => const BaseLayout(
             body: RouterOutlet(),
           ),
+          transition: TransitionType.noTransition,
           children: [
             ChildRoute(
               '/home',

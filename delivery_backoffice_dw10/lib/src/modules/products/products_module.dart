@@ -1,6 +1,6 @@
 import 'package:flutter_modular/flutter_modular.dart';
 
-import 'products_page.dart';
+import 'home/products_page.dart';
 
 class ProductsModule extends Module {
   @override
@@ -8,9 +8,7 @@ class ProductsModule extends Module {
 
   @override
   List<ModularRoute> get routes => [
-        ChildRoute(
-          '/',
-          child: (context, args) => const ProductsPage(),
-        )
+        ChildRoute('/', child: (context, args) => const ProductsPage()),
+        // ChildRoute('/', child: (context, args) => const ProductsPage()),
       ];
 }

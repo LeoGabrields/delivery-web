@@ -30,18 +30,14 @@ class _LoginPageState extends State<LoginPage> with Loader, Messages {
       (status) {
         switch (status) {
           case LoginStateStatus.initial:
-            break;
           case LoginStateStatus.loading:
             showLoader();
-            break;
           case LoginStateStatus.success:
             hideLoader();
             Modular.to.navigate('/');
-            break;
           case LoginStateStatus.error:
             hideLoader();
             showError(controller.errorMessage ?? 'Erro');
-            break;
         }
       },
     );
@@ -58,11 +54,9 @@ class _LoginPageState extends State<LoginPage> with Loader, Messages {
 
   void _formSubmit() {
     final formValid = formKey.currentState?.validate() ?? false;
+
     if (formValid) {
-      controller.login(
-        emailEC.text,
-        passwordEC.text,
-      );
+      controller.login(emailEC.text, passwordEC.text);
     }
   }
 
@@ -70,6 +64,7 @@ class _LoginPageState extends State<LoginPage> with Loader, Messages {
   Widget build(BuildContext context) {
     final screenShortestSide = context.screenShortesSide;
     final screeWidth = context.screenWidth;
+
     return Scaffold(
       backgroundColor: context.colors.black,
       body: Form(
