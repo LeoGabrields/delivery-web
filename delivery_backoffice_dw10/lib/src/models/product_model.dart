@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 class ProductModel {
-  final int id;
+  final int? id;
   final String name;
   final String description;
   final double price;
@@ -29,7 +29,7 @@ class ProductModel {
 
   factory ProductModel.fromMap(Map<String, dynamic> map) {
     return ProductModel(
-      id: map['id'] as int,
+      id: map['id'] != null ? map['id'] as int : null,
       name: map['name'] as String,
       description: map['description'] as String,
       price: map['price'] as double,

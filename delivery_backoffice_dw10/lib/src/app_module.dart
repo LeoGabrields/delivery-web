@@ -4,7 +4,7 @@ import 'modules/home/home_page.dart';
 import 'modules/login/login_module.dart';
 import 'modules/order/order_module.dart';
 import 'modules/payment_type/payment_type_module.dart';
-import 'modules/products/products_module.dart';
+import 'modules/products/product_module.dart';
 import 'modules/template/base_layout.dart';
 
 class AppModular extends Module {

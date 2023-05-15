@@ -31,6 +31,7 @@ class BaseHeader extends StatelessWidget {
               child: SizedBox(
                 width: constrains.maxWidth * .15,
                 child: TextFormField(
+                  enableInteractiveSelection: false,
                   onChanged: searchChange,
                   decoration: InputDecoration(
                     isDense: true,
@@ -83,5 +84,3 @@ class BaseHeader extends StatelessWidget {
     );
   }
 }
-
-
