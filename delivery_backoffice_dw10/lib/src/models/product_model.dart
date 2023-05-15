@@ -8,7 +8,7 @@ class ProductModel {
   final bool enabled;
   final String image;
   ProductModel({
-    required this.id,
+    this.id,
     required this.name,
     required this.description,
     required this.price,

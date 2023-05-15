@@ -1,10 +1,17 @@
 import 'package:brasil_fields/brasil_fields.dart';
+import 'package:delivery_backoffice_dw10/src/core/extensions/formatter_extensions.dart';
 import 'package:delivery_backoffice_dw10/src/core/ui/helpers/loader.dart';
 import 'package:delivery_backoffice_dw10/src/core/ui/helpers/messages.dart';
 import 'package:delivery_backoffice_dw10/src/core/ui/helpers/size_extensions.dart';
+import 'package:delivery_backoffice_dw10/src/core/ui/helpers/upload_html_helper.dart';
 import 'package:delivery_backoffice_dw10/src/core/ui/styles/text_styles.dart';
+import 'package:delivery_backoffice_dw10/src/modules/products/detail/product_detail_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:flutter_modular/flutter_modular.dart';
+import 'package:mobx/mobx.dart';
+import 'package:validatorless/validatorless.dart';
 import '../../../core/env/env.dart';
 
 class ProductDetailPage extends StatefulWidget {
@@ -17,7 +24,60 @@ class ProductDetailPage extends StatefulWidget {
 
 class _ProductDetailPageState extends State<ProductDetailPage>
     with Loader, Messages {
+  final controller = Modular.get<ProductDetailController>();
   final _formKey = GlobalKey<FormState>();
+  final nameEC = TextEditingController();
+  final priceEC = TextEditingController();
+  final descriptionEC = TextEditingController();
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      reaction((_) => controller.status, (status) {
+        switch (status) {
+          case ProductDetailStateStatus.initial:
+            break;
+          case ProductDetailStateStatus.loading:
+            showLoader();
+            break;
+          case ProductDetailStateStatus.loaded:
+            hideLoader();
+            final model = controller.productModel!;
+            nameEC.text = model.name;
+            priceEC.text = model.price.currencyPTBR;
+            descriptionEC.text = model.description;
+            break;
+          case ProductDetailStateStatus.error:
+            hideLoader();
+            showError(controller.errorMessage ?? 'Erro');
+            break;
+          case ProductDetailStateStatus.errorLoadProduct:
+            hideLoader();
+            showError('Erro ao carregar o produto para alteração');
+            Navigator.pop(context);
+            break;
+          case ProductDetailStateStatus.uploaded:
+            hideLoader();
+            break;
+          case ProductDetailStateStatus.deleted:
+          case ProductDetailStateStatus.saved:
+            hideLoader();
+            Navigator.pop(context);
+            break;
+        }
+      });
+      controller.loadProduct(widget.productId);
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    nameEC.dispose();
+    priceEC.dispose();
+    descriptionEC.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,21 +114,37 @@ class _ProductDetailPageState extends State<ProductDetailPage>
                   Stack(
                     alignment: Alignment.bottomCenter,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Image.network(
-                          '${Env.instance.get('backend_base_url')}//storage/mclumygt_jrs_1682022574279.jpg',
-                          width: 200,
-                        ),
+                      Observer(
+                        builder: (context) {
+                          if (controller.imagePath != null) {
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Image.network(
+                                '${Env.instance.get('backend_base_url')}${controller.imagePath}',
+                                width: 200,
+                              ),
+                            );
+                          } else {
+                            return const SizedBox.shrink();
+                          }
+                        },
                       ),
                       Container(
                         margin: const EdgeInsets.all(10),
                         child: TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            UploadHtmlHelper()
+                                .startUpload(controller.uploadImageProduct);
+                          },
                           style: TextButton.styleFrom(
                             backgroundColor: Colors.white.withOpacity(.9),
                           ),
-                          child: const Text('Adicionar Foto'),
+                          child: Observer(
+                            builder: (context) {
+                              return Text(
+                                  '${controller.imagePath == null ? 'Adicionar' : 'Alterar'} Foto');
+                            },
+                          ),
                         ),
                       )
                     ],
@@ -77,15 +153,19 @@ class _ProductDetailPageState extends State<ProductDetailPage>
                       child: Column(
                     children: [
                       TextFormField(
+                        controller: nameEC,
                         decoration: const InputDecoration(
                           label: Text('Nome'),
                         ),
+                        validator: Validatorless.required('Nome obrigatório'),
                       ),
                       const SizedBox(height: 20),
                       TextFormField(
+                        controller: priceEC,
                         decoration: const InputDecoration(
                           label: Text('Preço'),
                         ),
+                        validator: Validatorless.required('Preço obrigatório'),
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                           CentavosInputFormatter(moeda: true)
@@ -97,6 +177,7 @@ class _ProductDetailPageState extends State<ProductDetailPage>
               ),
               const SizedBox(height: 20),
               TextFormField(
+                controller: descriptionEC,
                 maxLines: null,
                 minLines: 10,
                 keyboardType: TextInputType.multiline,
@@ -104,6 +185,7 @@ class _ProductDetailPageState extends State<ProductDetailPage>
                   label: Text('Descrição'),
                   alignLabelWithHint: true,
                 ),
+                validator: Validatorless.required('Descrição obrigatória'),
               ),
               const SizedBox(height: 30),
               Align(
@@ -113,19 +195,53 @@ class _ProductDetailPageState extends State<ProductDetailPage>
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(5),
-                        height: 60,
-                        width: widthButtonAction / 2,
-                        child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Colors.red),
-                          ),
-                          onPressed: () {},
-                          child: Text(
-                            'Deletar',
-                            style: context.textStyles.textBold
-                                .copyWith(color: Colors.red),
+                      Visibility(
+                        visible: widget.productId != null,
+                        child: Container(
+                          padding: const EdgeInsets.all(5),
+                          height: 60,
+                          width: widthButtonAction / 2,
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.red),
+                            ),
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: const Text('Confirmar'),
+                                    content: Text(
+                                        'Confirma a exclusão do produto ${controller.productModel!.name}'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text(
+                                          'Cancelar',
+                                          style: context.textStyles.textBold
+                                              .copyWith(color: Colors.red),
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                          controller.deleteProduct();
+                                        },
+                                        child: Text(
+                                          'Confirmar',
+                                          style: context.textStyles.textBold,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            child: Text(
+                              'Deletar',
+                              style: context.textStyles.textBold
+                                  .copyWith(color: Colors.red),
+                            ),
                           ),
                         ),
                       ),
@@ -134,7 +250,24 @@ class _ProductDetailPageState extends State<ProductDetailPage>
                         height: 60,
                         width: widthButtonAction / 2,
                         child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            final valid =
+                                _formKey.currentState?.validate() ?? false;
+                            if (valid) {
+                              if (controller.imagePath == null) {
+                                showWarning(
+                                  'Image obrigatória, por favor clique em adiconar foto',
+                                );
+                                return;
+                              }
+                              controller.save(
+                                nameEC.text,
+                                UtilBrasilFields.converterMoedaParaDouble(
+                                    priceEC.text),
+                                descriptionEC.text,
+                              );
+                            }
+                          },
                           child: Text(
                             'Salvar',
                             style: context.textStyles.textBold,
