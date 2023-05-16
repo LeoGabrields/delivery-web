@@ -2,6 +2,8 @@ import 'package:delivery_backoffice_dw10/src/repositories/payment_type/payment_t
 import 'package:delivery_backoffice_dw10/src/repositories/payment_type/payment_type_repository_impl.dart';
 import 'package:delivery_backoffice_dw10/src/repositories/products/products_repository.dart';
 import 'package:delivery_backoffice_dw10/src/repositories/products/products_repository_impl.dart';
+import 'package:delivery_backoffice_dw10/src/repositories/user/user_repository.dart';
+import 'package:delivery_backoffice_dw10/src/repositories/user/user_repository_impl.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import '../../core/rest_client/custom_dio.dart';
 import '../../core/storage/session_storage.dart';
@@ -19,6 +21,10 @@ class CoreModule extends Module {
         Bind.lazySingleton<ProductRepository>(
           (i) => ProductRepositoryImpl(i()),
           export: true,
-        )
+        ),
+        Bind.lazySingleton<UserRepository>(
+          (i) => UserRepositoryImpl(i()),
+          export: true,
+        ),
       ];
 }

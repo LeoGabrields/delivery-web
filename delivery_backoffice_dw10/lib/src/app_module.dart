@@ -18,27 +18,13 @@ class AppModular extends Module {
         ModuleRoute('/login', module: LoginModule()),
         ChildRoute(
           '/',
-          child: (context, args) => const BaseLayout(
-            body: RouterOutlet(),
-          ),
+          child: (context, args) => const BaseLayout(body: RouterOutlet()),
           transition: TransitionType.noTransition,
           children: [
-            ChildRoute(
-              '/home',
-              child: (context, args) => const HomePage(),
-            ),
-            ModuleRoute(
-              '/payment-type',
-              module: PaymentTypeModule(),
-            ),
-            ModuleRoute(
-              '/order',
-              module: OrderModule(),
-            ),
-            ModuleRoute(
-              '/products',
-              module: ProductsModule(),
-            )
+            ChildRoute('/home', child: (context, args) => const HomePage()),
+            ModuleRoute('/payment-type', module: PaymentTypeModule()),
+            ModuleRoute('/order', module: OrderModule()),
+            ModuleRoute('/products', module: ProductsModule())
           ],
         ),
       ];

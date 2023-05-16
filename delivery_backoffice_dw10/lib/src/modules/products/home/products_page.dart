@@ -65,7 +65,7 @@ class _ProductsPageState extends State<ProductsPage> with Loader, Messages {
   Widget build(BuildContext context) {
     return Container(
       color: Colors.grey[50]!,
-      padding: const EdgeInsets.all(40),
+      padding: const EdgeInsets.only(left: 40, top: 40, right: 40),
       child: Column(
         children: [
           BaseHeader(
